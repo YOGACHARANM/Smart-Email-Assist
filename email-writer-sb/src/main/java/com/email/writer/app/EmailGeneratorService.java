@@ -1,31 +1,33 @@
 package com.email.writer.app;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+
 
 import java.util.Map;
 
 @Service
 public class EmailGeneratorService {
 
-    public EmailGeneratorService(WebClient.Builder webclient) {
-        this.webclient = webclient.build();
-    }
-
     private final WebClient webclient;
+
 
     @Value("${gemini.api.url}")
     private String geminiApiUrl;
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
+    public EmailGeneratorService(WebClient.Builder webclientBuilder) {
+        this.webclient = webclientBuilder.build();
+    }
+
     public String generateEmailReply(EmailRequest emailRequest) {
 
-        //built prompt used 
+        //built prompt used
         String prompt = builtPrompt(emailRequest);
 
         //craft request
@@ -38,7 +40,8 @@ public class EmailGeneratorService {
         //DO REQ AND GET RES
         String response= webclient.post()
                 .uri(geminiApiUrl + geminiApiKey)
-                .header("content-Type","application/json")
+                .header("Content-Type","application/json")
+                .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -69,7 +72,7 @@ public class EmailGeneratorService {
         if (emailRequest.getTone() != null && !emailRequest.getTone().isEmpty()) {
             prompt.append("use a ").append(emailRequest.getTone()).append("tone!!");
         }
-        prompt.append("\noriginal email: \n").append(emailRequest.getEmailcontent());
+        prompt.append("\noriginal email: \n").append(emailRequest.getEmailContent());
         return prompt.toString();
     }
 }
