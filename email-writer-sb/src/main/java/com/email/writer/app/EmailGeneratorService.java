@@ -35,16 +35,23 @@ public class EmailGeneratorService {
                 "contents", new Object[]{
                         Map.of("parts", new Object[]{
                                 Map.of("text", prompt)
+
                         })}
         );
         //DO REQ AND GET RES
-        String response= webclient.post()
-                .uri(geminiApiUrl + geminiApiKey)
-                .header("Content-Type","application/json")
+        String response = webclient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("generativelanguage.googleapis.com")
+                        .path("/v1beta/models/gemini-2.5-flash:generateContent")
+                        .queryParam("key", geminiApiKey)
+                        .build())
+                .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
+
 
         return extractResponseContent(response);
     }
