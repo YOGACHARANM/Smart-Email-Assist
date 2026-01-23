@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import { TextField, Typography, Container, Box, InputLabel, MenuItem,FormControl,Select, Button, CircularProgress } from '@mui/material';
+import axios from "axios";
 
 function App() {
     const [emailContent, setEmailContent] = useState('');
@@ -10,7 +11,21 @@ const [loading, setLoading] = useState(false);
 const [error, setError] = useState('');
 
 const handlesubmit=async () => {
-
+     setLoading(true);
+     setError('');
+     try{
+    const response = await axios.post("http://localhost:8080/api/email/generate",{
+      emailContent,
+      tone
+    });
+    setGeneratedReply(typeof response.data === 'string' ?  response.data : JSON.stringify(response.data));
+     }catch(error)
+     {
+      setError('failed to generate reply/.please try again.')
+      console.error(error)
+     }finally{
+      setLoading(false);
+         }
 
 };
   return (
@@ -52,11 +67,12 @@ const handlesubmit=async () => {
 </Button>
 
   </Box>
-{error && 
-          (<Typography color='error' sx={{ mb:2}}>
-      Email Reply Generator
-    </Typography>
-  )}
+{error && (
+  <Typography color="error" sx={{ mt: 2 }}>
+    {error}
+  </Typography>
+)}
+
 
   {generatedReply && ( 
     <Box sx={{ mt:3}}>
@@ -69,9 +85,14 @@ const handlesubmit=async () => {
        rows={6}
        variant='outlined'
        value={generatedReply || ''}      
-       inputProps={ {readonly:true}}/>
+       inputProps={ {readonly:true}}/>  
 
        <Button
+        variant='outlined'
+        sx={{  mt:5 }}
+        onClick={() => navigator.clipboard.writeText(generatedReply)}>   
+        copy the clip   
+          </Button>
        
     </Box>
   )}

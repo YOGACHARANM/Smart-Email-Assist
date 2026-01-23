@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
 
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -32,12 +33,16 @@ public class EmailGeneratorService {
 
         //craft request
         Map<String, Object> requestBody = Map.of(
-                "contents", new Object[]{
-                        Map.of("parts", new Object[]{
-                                Map.of("text", prompt)
-
-                        })}
+                "contents", List.of(
+                        Map.of(
+                                "parts", List.of(
+                                        Map.of("text", prompt)
+                                )
+                        )
+                )
         );
+
+
         //DO REQ AND GET RES
         String response = webclient.post()
                 .uri(uriBuilder -> uriBuilder
@@ -60,7 +65,12 @@ public class EmailGeneratorService {
         try {
             ObjectMapper mapper =new ObjectMapper();
             JsonNode rootNode= mapper.readTree(response);
-            return  rootNode.path("candidates")
+
+            JsonNode candidates = rootNode.path("candidates");
+            if (!candidates.isArray() || candidates.size() == 0) {
+                return "No reply generated. Full response: " + response;
+            }
+            return  candidates
                     .get(0)
                     .path("content")
                     .path("parts")
@@ -69,6 +79,7 @@ public class EmailGeneratorService {
                     .asText();
         }
         catch (Exception e){
+            e.printStackTrace();
             return "Error processing request"+ e.getMessage();
         }
     }
