@@ -14,7 +14,8 @@ const handlesubmit=async () => {
      setLoading(true);
      setError('');
      try{
-    const response = await axios.post("http://localhost:8080/api/email/generate",{
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+    const response = await axios.post(`${apiUrl}/api/email/generate`, {
       emailContent,
       tone
     });

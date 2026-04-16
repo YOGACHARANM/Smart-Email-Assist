@@ -43,22 +43,20 @@ public class EmailGeneratorService {
         );
 
 
-        //DO REQ AND GET RES
-        String response = webclient.post()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .host("generativelanguage.googleapis.com")
-                        .path("/v1beta/models/gemini-2.5-flash:generateContent")
-                        .queryParam("key", geminiApiKey)
-                        .build())
-                .header("Content-Type", "application/json")
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-
-
-        return extractResponseContent(response);
+        try {
+            String response = webclient.post()
+                    .uri(geminiApiUrl + "?key=" + geminiApiKey)
+                    .header("Content-Type", "application/json")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            return extractResponseContent(response);
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            return "API Error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString();
+        } catch (Exception e) {
+            return "Internal Error: " + e.getMessage();
+        }
     }
 // extract response and return
     private String extractResponseContent(String response) {
