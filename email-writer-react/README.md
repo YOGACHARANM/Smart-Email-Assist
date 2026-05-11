@@ -50,4 +50,3 @@ A Full-Stack AI-powered Email Assistant built using Spring Boot, React, and Spri
 * Integrated Spring AI with Gemini API
 * Automated professional email reply generation
 * Improved user productivity with one-click responses
-
